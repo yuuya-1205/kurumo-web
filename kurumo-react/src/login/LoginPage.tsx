@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import base_logo from "../assets/images/base_logo.png"
+import ButtonComponent from "../components/ButtonComponent";
 
 
 export default function LoginPage() {
@@ -23,6 +24,7 @@ export default function LoginPage() {
                     <p className='text-blue-900'>パスワード</p>
                     <input type='password' name='password' className=' bg-white p-2 rounded-lg  w-full max-w-md border border-grey mb-10'></input>
                 </form>
+                <ButtonComponent label={"こんばんは"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
                 <button onClick={handleLogin} className="bg-blue-400  text-white rounded-3xl w-64 h-16 mb-10 font-bold">ログイン</button >
                 <button onClick={handleSelectedRegisterPage} className="bg-blue-400  text-white rounded-3xl w-64 h-16 font-bold">新規登録</button >
             </div>
