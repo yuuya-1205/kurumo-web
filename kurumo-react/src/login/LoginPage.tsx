@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import base_logo from "../assets/images/base_logo.png"
 import ButtonComponent from "../components/ButtonComponent";
+import FormComponent from "../components/FormComponent";
 
 
 export default function LoginPage() {
@@ -19,14 +20,10 @@ export default function LoginPage() {
             <img className="mb-10" src={base_logo} alt="Description of image" />
             <div className="flex flex-col items-center  mb-2 h-screen">
                 <form className='text-left font-bold w-full '>
-                    <p className='text-blue-900'>メールアドレス</p>
-                    <input type='mail' name='email' className=' bg-white p-2 rounded-lg  w-full max-w-md border border-grey mb-10'></input>
-                    <p className='text-blue-900'>パスワード</p>
-                    <input type='password' name='password' className=' bg-white p-2 rounded-lg  w-full max-w-md border border-grey mb-10'></input>
+                    <FormComponent text={"メールアドレス"} label={"mail"}></FormComponent>
+                    <FormComponent text={"パスワード"} label={"password"}></FormComponent>
                 </form>
                 <ButtonComponent label={"こんばんは"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
-                <button onClick={handleLogin} className="bg-blue-400  text-white rounded-3xl w-64 h-16 mb-10 font-bold">ログイン</button >
-                <button onClick={handleSelectedRegisterPage} className="bg-blue-400  text-white rounded-3xl w-64 h-16 font-bold">新規登録</button >
             </div>
         </>
     );
