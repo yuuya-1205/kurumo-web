@@ -18,12 +18,26 @@ export default function LoginPage() {
             </header>
             {/* 中央揃えできない */}
             <img className="mb-10" src={base_logo} alt="Description of image" />
-            <div className="flex flex-col items-center  mb-2 h-screen">
-                <form className='text-left font-bold w-full '>
+
+
+            {/* まず、縦済みする。 */}
+            {/* ①これを中央揃えする。
+            ②幅を決める
+             */}
+            <div className="mx-auto w-80 h-100 bg-green-200">
+                <form >
                     <FormComponent text={"メールアドレス"} label={"mail"}></FormComponent>
                     <FormComponent text={"パスワード"} label={"password"}></FormComponent>
                 </form>
-                <ButtonComponent label={"こんばんは"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
+
+                <div className="text-right mb-20">
+                    こんばんは
+                </div>
+                <ButtonComponent label={"ログイン"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
+                <div className="flex-1 border-b border-gray-500 mb-20"></div>
+                <div className="text-center">または </div>
+                <ButtonComponent label={"新規登録"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
+
             </div>
         </>
     );
