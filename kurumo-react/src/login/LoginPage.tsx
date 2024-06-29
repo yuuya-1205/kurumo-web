@@ -28,7 +28,7 @@ export default function LoginPage() {
                 </form>
 
                 <div className="text-right mb-20 underline text-blue-300">
-                    こんばんは
+                    パスワードをお忘れの方はこちら
                 </div>
                 <ButtonComponent label={"ログイン"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
                 <div className="flex-1 border-b border-gray-500 mb-20"></div>
