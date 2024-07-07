@@ -6,12 +6,13 @@ import FormComponent from "../components/FormComponent";
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const handleLogin = () => {
-        navigate('/ReservationList')
+    const handleReservationListPage = () => {
+        navigate('/ReservationListPage')
     }
     const handleSelectedRegisterPage = () => {
-        navigate('/RegisterPage')
+        navigate('/SelectRegisterPage')
     }
+
     return (
         <>
             <body className="bg-blue-500">
@@ -30,10 +31,10 @@ export default function LoginPage() {
                 <div className="text-right mb-20 underline text-blue-300">
                     パスワードをお忘れの方はこちら
                 </div>
-                <ButtonComponent label={"ログイン"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
+                <ButtonComponent label={"ログイン"} onButtonClick={handleReservationListPage}></ButtonComponent>
                 <div className="flex-1 border-b border-gray-500 mb-20"></div>
                 <div className="text-center">または </div>
-                <ButtonComponent label={"新規登録"} onButtonClick={handleLogin}></ButtonComponent>
+                <ButtonComponent label={"新規登録"} onButtonClick={handleSelectedRegisterPage}></ButtonComponent>
             </div>
         </>
     );

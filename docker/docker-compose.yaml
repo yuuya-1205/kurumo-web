@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  db:
+    # ここにpathを入れることもできる。
+    image: mysql:8.0
+
+    # DB mySQLに関しての設定が入っている。
+    volumes:
+      # コンテナtoコンテナ
+      - db-store:/var/lib/mysql
+      # pathの書き方。（②の概念での書き方）コンテナtoローカル
+      - ./docker/db/logs:/var/log/mysql
+      # DBの設定ファイル
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+      - TZ=${TZ}
+    ports:
+      - ${DB_PORT}:3306
+
+# ①定義宣言して名前でdb-storeこれでvolumeコンテナを作る。これは消さない限り消えない。
+# 消したくない時に書く。
+
+# ②ローカルのフォルダーと同期する。
+#
+volumes:
+  db-store:
