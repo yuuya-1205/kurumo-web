@@ -1,40 +1,30 @@
-version: "3.9"
+version: “3.9”
 services:
-  db:
-    # ここにpathを入れることもできる。
+  kurumo_db:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
-    container_name: mysql
+    container_name: kurumo_mysql
     ports:
-      - 3306:3306
-
-    # DB mySQLに関しての設定が入っている。
+      - "3306:3306"
     volumes:
-      - ./docker/db/data:/var/lib/mysql
-      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
-      # # コンテナtoコンテナ
-      # - db-store:/var/lib/mysql
-      # # pathの書き方。（②の概念での書き方）コンテナtoローカル
-      # - ./docker/db/logs:/var/log/mysql
-      # # DBの設定ファイル
-      # - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./db/data:/var/lib/mysql
+      - ./db/logs:/var/log/mysql
+      - ./db/conf/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./db/init.sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
       MYSQL_USER: test
       MYSQL_PASSWORD: test
-      # MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: laravel
-      # - MYSQL_DATABASE=${DB_NAME}
-      # - MYSQL_USER=${DB_USER}
-      # - MYSQL_PASSWORD=${DB_PASS}
-      # - MYSQL_ROOT_PASSWORD=${DB_PASS}
-      # - TZ=${TZ}
-
-
-# ①定義宣言して名前でdb-storeこれでvolumeコンテナを作る。これは消さない限り消えない。
-# 消したくない時に書く。
-
-# ②ローカルのフォルダーと同期する。
-#
-volumes:
-  db-store:
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_bin
+      --default-time-zone=SYSTEM
+      --plugin-load-add=mysql_native_password.so
+      --log-error=/var/log/mysql/mysql-error.log
+      --slow-query-log=1
+      --slow-query-log-file=/var/log/mysql/mysql-slow.log
+      --long-query-time=5.0
+      --log-queries-not-using-indexes=0
+      --general-log=1
+      --general-log-file=/var/log/mysql/mysql-query.log
