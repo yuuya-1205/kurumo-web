@@ -46,7 +46,8 @@ description: kurumo-web に API エンドポイントを追加・変更すると
   - 文字列は `TrimSpace` してから検証する
   - 検証エラーは「フィールド名 → 理由」の map にまとめ、`ValidationError` で返す
   - 文字数の上限は `len([]rune(s))` で数える（バイト数ではない）
-- レスポンスは `JSON` / `Error` / `ValidationError` を使う。`json.NewEncoder` を直接呼ばない
+- 正常系は `c.JSON(status, body)`（ボディを返さないときは `c.Status(http.StatusNoContent)`）。
+  エラーは `Error` / `ValidationError` を通す。`json.NewEncoder` は直接呼ばない
 - `store` のエラーは `writeStoreError` で HTTP ステータスへ対応付ける。
   想定外のエラーは `internalError` に通し、詳細はログにのみ残す
 - **`handler` から GORM を import しない。** した時点で層の分け方が壊れている
