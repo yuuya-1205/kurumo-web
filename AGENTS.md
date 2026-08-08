@@ -16,15 +16,17 @@ frontend（React + TypeScript + Vite）と backend（Go）を 1 リポジトリ�
   `frontend/src/api/health.ts` の `ENDPOINTS` にも足す。手順は
   [add-endpoint スキル](.claude/skills/add-endpoint/SKILL.md) に従う。
 
-## 定型作業の手順
+## スキル
 
-複数のファイルにまたがって更新漏れが起きやすい作業は、`.claude/skills/` に手順を置いている。
+更新漏れが起きやすい定型作業の手順と、迷いやすい設計判断を `.claude/skills/` に置いている。
 
 | スキル | 使う場面 |
 | --- | --- |
 | [add-endpoint](.claude/skills/add-endpoint/SKILL.md) | API エンドポイントの追加・変更 |
 | [add-page](.claude/skills/add-page/SKILL.md) | frontend に画面を追加する |
 | [figma-to-component](.claude/skills/figma-to-component/SKILL.md) | Figma のデザインをコンポーネントに起こす |
+| [component-design](.claude/skills/component-design/SKILL.md) | 部品の分け方・状態の置き場所・props を判断する |
+| [write-tests](.claude/skills/write-tests/SKILL.md) | テストを書く |
 
 ## 書き方の約束
 
