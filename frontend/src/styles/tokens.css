@@ -18,6 +18,7 @@
   /* 色。gray は Figma のスケールで、Tailwind 既定の gray とは別物。
      この 3 段以外の gray-*（gray-500 など）は使わないこと。 */
   --color-primary-50: #ecf7fb;
+  --color-primary-100: #aae2f4;
   --color-primary-300: #1fa2cb;
   --color-accent-300: #fab54d;
   --color-gray-200: #d8dadd;
