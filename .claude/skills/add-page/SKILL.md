@@ -18,7 +18,7 @@ src/pages/auth/LoginPage.tsx     機能でまとまる画面群はサブディ�
 ```
 
 - ファイル名・コンポーネント名は **`XxxPage`** で揃える（`LoginPage`, `SignUpEmailPage`）
-- **named export** にする（`export function LoginPage()`）。default export は `App` だけ
+- **named export** にする（`export function LoginPage()`）。default export は使わない
 - 開発者向けの画面は `/debug/` 配下に置く（`/debug/health` が前例）
 
 ## 2. CSS の持たせ方
@@ -27,11 +27,15 @@ src/pages/auth/LoginPage.tsx     機能でまとまる画面群はサブディ�
 
 | 状況 | 置き方 |
 | --- | --- |
-| 単独の画面 | `XxxPage.tsx` と `XxxPage.css` を同名で対にする |
-| 機能でまとまる画面群 | `auth-pages.css` のように **1 枚を共有**する |
+| 単独の画面 | `XxxPage.tsx` と `XxxPage.css` を同名で対にし、`.tsx` の先頭で import する |
+| 機能でまとまる画面群 | **レイアウト部品の CSS に寄せる**。画面側は CSS を持たない |
 
-新規登録の 5 画面のように見た目が揃っているものは、共有 CSS に寄せる方が破綻しにくい。
-`.tsx` の先頭で import する。
+認証まわりの 6 画面は見た目が揃っているため、共通のスタイルを `AuthLayout.css` に
+集約し、各画面は `AuthLayout` でラップするだけにしてある（`.auth-form`, `.auth-link`,
+`.field-row` などはすべてここ）。画面ごとに CSS を分けると同じ指定が散らばるため。
+
+**新しい画面を機能グループに足すときは、まず既存のレイアウト部品の CSS で足りるかを見る。**
+その画面だけの見た目が要る場合に限って `XxxPage.css` を作る。
 
 **色・寸法・フォントは `src/styles/tokens.css` の変数を使う。生の hex を書かない。**
 必要な値が無い場合は tokens.css に足してから使う（値の出どころは Figma）。
