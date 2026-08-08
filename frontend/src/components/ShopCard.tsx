@@ -2,10 +2,11 @@ import { Link } from 'react-router'
 import type { Shop } from '../api/shops'
 import heartIcon from '../assets/brand/heart.svg'
 import starsIcon from '../assets/brand/stars.svg'
+import { selectIsFavorite, toggled } from '../store/favoritesSlice'
+import { useAppDispatch, useAppSelector } from '../store/hooks'
 
 type ShopCardProps = {
   shop: Shop
-  onFavoriteClick?: (shop: Shop) => void
 }
 
 /*
@@ -15,10 +16,12 @@ type ShopCardProps = {
  * フローで組み直すとキャッチコピー（left 29）と情報ブロック（left 27）の 2px 差が
  * 潰れてしまうため。
  *
- * Figma ではカード全体がリンクだが、掲載ページがまだ無いので今は article にしている。
- * 掲載ページを作ったら Link で包む。
+ * お気に入りは一覧を離れても残したいので、画面ではなく store で持つ。
  */
-export function ShopCard({ shop, onFavoriteClick }: ShopCardProps) {
+export function ShopCard({ shop }: ShopCardProps) {
+  const dispatch = useAppDispatch()
+  const favorite = useAppSelector((state) => selectIsFavorite(state, shop.id))
+
   return (
     <article className="relative h-[400px] w-[351px] overflow-hidden rounded-field bg-back shadow-list-menu">
       {/*
@@ -45,9 +48,9 @@ export function ShopCard({ shop, onFavoriteClick }: ShopCardProps) {
       <button
         type="button"
         className="absolute left-[228px] top-[183px] z-[2] size-10 cursor-pointer"
-        onClick={() => onFavoriteClick?.(shop)}
-        aria-pressed={shop.favorite}
-        aria-label={shop.favorite ? 'お気に入りから外す' : 'お気に入りに追加'}
+        onClick={() => dispatch(toggled(shop.id))}
+        aria-pressed={favorite}
+        aria-label={favorite ? 'お気に入りから外す' : 'お気に入りに追加'}
       >
         <img src={heartIcon} alt="" width={40} height={40} />
       </button>

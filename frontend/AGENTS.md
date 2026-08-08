@@ -23,9 +23,10 @@
 ## ディレクトリの使い分け
 
 ```
-src/api/         backend との通信。fetch はここだけに書く（adapter 層にあたる）
+src/api/         backend との通信と永続化。fetch はここだけに書く（adapter 層にあたる）
 src/components/  画面をまたいで使う部品（ui 層）
 src/pages/       画面単位のコンポーネント（ui 層）
+src/store/       Redux の store と slice（ui 層）
 src/styles/      デザイントークン（Tailwind の @theme）
 ```
 
@@ -93,10 +94,32 @@ lint は oxlint（`npm run lint`）。型チェックは `npm run build` の `ts
 ブラウザから読むものは `VITE_` プレフィックスが必須。追加したら `.env.example` と
 `src/vite-env.d.ts` の両方を更新する。`.env` はコミットしない。
 
+## 状態の置き場所
+
+**まず `useState` で書く。** 1 画面で完結する状態（並び順、フォームの入力、開閉）は
+コンポーネントに置いたままでよい。
+
+**画面をまたいで残す必要が出たら Redux Toolkit の store に移す**（`src/store/`）。
+お気に入りが前例で、一覧から詳細へ移動しても消えないよう store に置いている。
+
+```tsx
+const dispatch = useAppDispatch()
+const favorite = useAppSelector((state) => selectIsFavorite(state, shop.id))
+```
+
+- **`useDispatch` / `useSelector` を直接使わない。** 型を付けた
+  `useAppDispatch` / `useAppSelector`（`src/store/hooks.ts`）を使う
+- **reducer の中で localStorage や fetch を触らない。** 純粋に保つ。
+  永続化は `src/api/` の関数に置き、`store/index.ts` の `subscribe` から呼ぶ
+  （`favoriteStorage.ts` が前例）
+- ログイン状態だけは `AuthProvider`（Context）のまま。store には移していない
+
 ## まだ無いもの
 
 - **テストフレームワークは未導入。** 必要になったら相談してから入れる（勝手に vitest を追加しない）。
-- 状態管理ライブラリは無い。`useState` と props で足りている。
+- **サーバー状態のキャッシュ機構は無い。** 一覧・詳細のデータはダミーを同期で返している。
+  backend に店舗のエンドポイントができたら TanStack Query の導入を検討する。
+  Redux はクライアント状態のためのもので、取得・キャッシュ・再取得の面倒は見ない。
 - UI コンポーネントライブラリは無い。部品は `src/components/` に自前で置いている。
 
 ## コマンド

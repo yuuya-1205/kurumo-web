@@ -8,15 +8,9 @@ import { ShopCard } from '../components/ShopCard'
 /** 店舗一覧。Figma の「一覧」画面。 */
 export function ShopListPage() {
   // API がまだ無いので取得は同期。つなぐときに useEffect + loading 状態にする。
-  const [shops, setShops] = useState<Shop[]>(() => fetchShops())
+  const [shops] = useState<Shop[]>(() => fetchShops())
   const [sort, setSort] = useState<SortOption>('現在地順')
   const [visitOnly, setVisitOnly] = useState(false)
-
-  const toggleFavorite = (target: Shop) => {
-    setShops((prev) =>
-      prev.map((shop) => (shop.id === target.id ? { ...shop, favorite: !shop.favorite } : shop)),
-    )
-  }
 
   const visible = visitOnly ? shops.filter((shop) => shop.supportsVisit) : shops
 
@@ -35,7 +29,7 @@ export function ShopListPage() {
         {/* フィルタ下端からグリッドまで 40px（Figma: 210 → 250）。列 24px / 行 40px */}
         <div className="mt-10 flex flex-wrap gap-x-6 gap-y-10">
           {visible.map((shop) => (
-            <ShopCard key={shop.id} shop={shop} onFavoriteClick={toggleFavorite} />
+            <ShopCard key={shop.id} shop={shop} />
           ))}
         </div>
 

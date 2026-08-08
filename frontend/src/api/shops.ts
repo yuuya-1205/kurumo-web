@@ -29,8 +29,6 @@ export type Shop = {
   imageUrl: string
   /** 出張に対応しているか。true のとき画像の上にバッジを出す */
   supportsVisit: boolean
-  /** お気に入り登録済みか */
-  favorite: boolean
 }
 
 /** 並び順の選択肢。今は表示のみで、切り替えても結果は変わらない。 */
@@ -47,7 +45,6 @@ const SAMPLE: Shop = {
   averagePrice: '4500円〜',
   imageUrl: shopSample,
   supportsVisit: true,
-  favorite: false,
 }
 
 /**
