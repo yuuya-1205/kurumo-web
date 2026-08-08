@@ -81,7 +81,7 @@ isLight?: boolean             // ✗ 3 つ目が出た時に破綻する
 ### 画面ごとに変わる寸法は props で受ける
 
 Figma 上でボタン幅やフォーム幅が画面ごとに違うため、`Button` は `width`、
-`AuthLayout` は `width` を px で取る。**CSS に固定値を焼き込まない。**
+`AuthLayout` は `width` を px で取り `style` に渡す。**クラスに固定値を焼き込まない。**
 
 ```tsx
 <Button type="submit" width={284}>アカウントを作成</Button>
@@ -98,18 +98,42 @@ Figma 上でボタン幅やフォーム幅が画面ごとに違うため、`Butt
 ## 5. 1 ファイルに複数の部品を置いてよい場合
 
 `TextField.tsx` は `TextField` と `PasswordField` を両方 export している。
-**見た目とクラス名を共有していて、片方を直すともう片方も直すことになる**ため。
+**クラス定数（`fieldClass` / `inputClass`）とファイル内の `Label` を共有していて、
+片方を直すともう片方も直すことになる**ため。
 
 逆に、関係のない部品を 1 ファイルにまとめない。判断は「片方の変更がもう片方に
 波及するか」。
 
-## 6. スタイルの置き場所
+## 6. クラスをどう持つか
 
-- 部品のスタイルは同名の `.css`（`Button.tsx` ↔ `Button.css`）
-- **画面群で共通のスタイルはレイアウト部品の CSS に寄せる。**
-  認証画面の `.auth-form` / `.auth-link` / `.field-row` は `AuthLayout.css` にある
-- 値は `src/styles/tokens.css` の CSS 変数を使う。生の hex を書かない
+スタイルは Tailwind のユーティリティで当てる。**部品ごとの `.css` は無い。**
+問題は「クラス列をどこに置くか」で、判断は部品の置き場所と同じく**一番狭いところから**。
 
+| 使われ方 | 置き方 |
+| --- | --- |
+| その要素だけ | JSX に直接書く |
+| 部品の中で使い回す / 長い | **モジュールスコープの `const`** に名前を付ける |
+| 画面側からも使う | レイアウト部品から **`export`** する |
+
+`Button.tsx` の `base`、`TextField.tsx` の `inputClass` が 2 番目。
+`AuthLayout.tsx` の `authFormClass` / `authMessageClass` が 3 番目。
+
+**JSX に長いクラス列を直接並べない。** 定数に切り出すと名前で意図が説明でき、
+Figma のどこから来た値かをコメントで残せる。
+
+```tsx
+/* 枠線込みで 56px に収めるため、上下の padding は 16px ではなく 15px */
+const inputClass = 'box-border w-full px-4 py-[15px] border border-gray-400 rounded-field'
+```
+
+**呼び出し側の `className` は末尾に連結して後勝ちにする。** 部品の既定を
+上書きできるようにするため。
+
+```tsx
+className={className ? `${base} ${className}` : base}
+```
+
+値は `@theme` のトークンをクラスとして使う。生の hex を書かない。
 詳細は add-page / figma-to-component スキルにある。
 
 ## 7. やりすぎの兆候

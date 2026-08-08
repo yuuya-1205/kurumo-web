@@ -1,6 +1,6 @@
 ---
 name: figma-to-component
-description: kurumo-web で Figma のデザインを frontend のコンポーネントに起こすときの手順。デザイン取得、tokens.css への変数反映、アセットの書き出しと配置、.tsx + .css ペアでの実装までを揃える。Figma の URL を渡された、デザインどおりに実装したい、tokens.css を更新したい、といった依頼で使う。
+description: kurumo-web で Figma のデザインを frontend のコンポーネントに起こすときの手順。デザイン取得、tokens.css の @theme へのトークン反映、アセットの書き出しと配置、Tailwind クラスでの実装までを揃える。Figma の URL を渡された、デザインどおりに実装したい、tokens.css を更新したい、といった依頼で使う。
 ---
 
 # Figma からコンポーネントを起こす
@@ -22,22 +22,30 @@ Figma MCP のツールで対象フレームを読む。
 
 **寸法の基準は 1280px 幅のフレーム。** `tokens.css` の `--auth-*` はこの基準で入っている。
 
-## 2. 変数を tokens.css に反映する
+## 2. トークンを tokens.css に反映する
 
-**実装より先にここをやる。** 部品の CSS に生の hex を書き始めると後から直しにくい。
+**実装より先にここをやる。** クラスに生の hex を書き始めると後から直しにくい。
 
-- Figma で変数になっている値は、そのまま `tokens.css` の `:root` に足す
-  （命名は `--color-primary-300`, `--radius-pill` のように Figma の階層に合わせる）
-- **Figma で変数化されていないが実装に必要な値**は、その旨をコメントで併記してから足す
+`tokens.css` には置き場所が 2 つある。**使い分けを間違えない。**
+
+| 置き場所 | 入れるもの | 参照の仕方 |
+| --- | --- | --- |
+| `@theme { }` | ユーティリティにしたい値（色・フォント・角丸・影） | `bg-primary-300`, `font-jp`, `rounded-pill` |
+| `:root { }` | 参照できれば足りる値（画面固有の寸法） | `h-[var(--auth-control-height)]` |
+
+- Figma で変数になっている色・フォント・角丸は `@theme` に足す。
+  命名は `--color-primary-300`, `--radius-pill` のように Figma の階層に合わせる
+- **Figma で変数化されていないが実装に必要な値**は、出どころをコメントで併記してから足す
   ```css
-  /* ロゴ内で使われる色。変数化されていないが実装上必要なので併記する */
-  --color-logo-mark: #3dc0e9;
+  --color-logo-mark: #3dc0e9; /* ロゴのマーク */
   ```
-  黙って部品の CSS に直書きしない。後で Figma 側が変数化されたときに追えなくなる
-- 既存の変数と値が食い違う場合、**コードを合わせるのではなく Figma 側とどちらが正しいか確認する**
+  黙ってクラスに直書きしない。後で Figma 側が変数化されたときに追えなくなる
+- 既存の値と食い違う場合、**コードを合わせるのではなく Figma 側とどちらが正しいか確認する**
+- **`gray` は Figma のスケール（200 / 400 / 900）だけ。** Tailwind 既定の `gray-500` などは使わない
+- 余白は `--spacing: 4px` が指定済みなので、`p-4` = 16px と Figma の px から素直に決まる
 
-`index.css` にも変数があるが、こちらは疎通確認画面など Figma 由来でない部分のもの。
-**混ぜない。** Figma のデザイントークンは `tokens.css` に置く。
+`index.css` にも CSS 変数があるが、こちらは Figma 由来でない部分（疎通確認画面の配色）。
+**`@theme` に混ぜない。** クラス側からは `text-[var(--text)]` のように参照する。
 
 ## 3. アセットを書き出す
 
@@ -53,30 +61,46 @@ Figma MCP のツールで対象フレームを読む。
 
 ## 4. コンポーネントを実装する
 
-`src/components/` に `Xxx.tsx` + `Xxx.css` の同名ペアで作る。named export。
+`src/components/` に `.tsx` 1 ファイルで作る。**部品ごとの `.css` は作らない。**
+named export。
 
 - **Figma のコンポーネント名と対応させ、JSDoc にその旨を書く**
   ```tsx
   /** 角丸ピル型のプライマリボタン。Figma の「対応ボタン」コンポーネント。 */
   ```
 - **画面ごとに変わる寸法は props で受ける。** Figma 上でボタン幅が画面ごとに違うので、
-  `Button` は `width` を px で取る形にしてある。CSS に固定値を焼き込まない
+  `Button` は `width` を px で取り `style` に渡している。クラスに固定値を焼き込まない
 - バリアントは props で分ける（`Logo` の `variant?: 'color' | 'light'`）
 - 素の HTML 要素をラップする場合は `ComponentProps<'button'>` を拡張し、
-  余った props は `{...props}` で流す
+  余った props は `{...props}` で流す。`className` は末尾に連結して後勝ちにする
+
+### クラスは定数に括り出す
+
+**長いクラス列を JSX に直接並べない。** モジュールスコープの定数に名前を付け、
+Figma のどこから来た値かをコメントで残す。
+
+```tsx
+/* 枠線込みで 56px に収めるため、上下の padding は 16px ではなく 15px */
+const inputClass =
+  'box-border w-full min-h-[var(--auth-control-height)] px-4 py-[15px] ' +
+  'border border-gray-400 rounded-field bg-back'
+```
+
+画面側からも使うものは、レイアウト部品から export する
+（`AuthLayout.tsx` の `authFormClass` / `authMessageClass`）。
 
 ### Figma の端数はそのまま入れる
 
-Figma の値に小数が出てきても丸めない。**どこから来た数字かをコメントで残す。**
+Figma の値に小数が出てきても丸めない。任意値記法でそのまま書く。
 
 ```tsx
 {/* Figma 上のアイコン寸法は 23.531 x 24 */}
 <img src={googleLogo} alt="" width={23.531} height={24} />
 ```
 
-```css
-/* 位置は Figma 基準。.auth-form の gap 19px に足りない分をマージンで補う */
-.auth-link { margin-top: 5px; }
+```tsx
+{/* Figma 上の姓・名の間隔は 29.777px */}
+<div className="flex w-full gap-[29.777px]">
 ```
 
 ## 5. アクセシビリティ
@@ -98,10 +122,11 @@ cd frontend && npm run lint && npm run build && npm run dev
 
 ## 最後の確認
 
-- [ ] 新しい色・寸法を tokens.css に足した（部品の CSS に直書きしていない）
+- [ ] 新しい色・フォント・角丸は `@theme` に足した（クラスに生の hex を書いていない）
+- [ ] `@theme` と `:root` の使い分けが合っている
 - [ ] 変数化されていない値にはコメントで出どころを書いた
 - [ ] アセットは `src/assets/brand/` に置いた
-- [ ] `.tsx` + `.css` の同名ペア、named export
+- [ ] `.tsx` 1 ファイル、named export。長いクラス列は定数に括り出した
 - [ ] 画面ごとに変わる寸法は props にした
 - [ ] `alt` / `aria-label` / `htmlFor` を付けた
 - [ ] `npm run lint && npm run build` が通る
