@@ -1,0 +1,6 @@
+# Claude Code のローカル設定。権限の許可リストなどマシン固有の内容が入るため
+# コミットしない。チームで共有したい設定は .claude/settings.json に置く。
+.claude/settings.local.json
+
+# macOS が自動生成するもの
+.DS_Store
