@@ -6,7 +6,14 @@ React + TypeScript + Vite で構成したフロントエンド。
 
 - Node.js 22（`.nvmrc` で固定。`nvm use` で切り替わる）
 
-Vite 8 は Node `>=20.19` を要求するため、Node 18 では起動しない。
+Vite 8 は Node `>=20.19` を要求するため、Node 18 では起動しない。技術的な下限は
+`package.json` の `engines`（`>=20.19`）で、`.nvmrc` の 22 は開発時に揃えるバージョン。
+
+満たしていない場合は次の 2 箇所で止まる。`nvm use` を忘れても、原因の分かりにくい
+エラー（vite が `node:util` の `styleText` を見つけられない）にはならない。
+
+- `npm install` — `.npmrc` の `engine-strict=true` により失敗する
+- `npm run dev` / `build` / `preview` — 実行前に [scripts/check-node.mjs](scripts/check-node.mjs) が確認する
 
 ## 起動
 
