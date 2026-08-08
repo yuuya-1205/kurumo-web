@@ -30,34 +30,28 @@ description: kurumo-web でテストを書くときの方針と書き方。backe
 
 逆に、getter や構造体の詰め替えなど、壊れようのないものにテストを書かない。
 
-## ハンドラのテストの 2 つの形
+## ハンドラのテストの形
 
-### 依存が無いハンドラ — 直接呼ぶ
-
-```go
-req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
-rec := httptest.NewRecorder()
-
-Health().ServeHTTP(rec, req)
-```
-
-`health_test.go` が例。
-
-### パスパラメータを使うハンドラ — ServeMux を通す
-
-**`r.PathValue("id")` は `ServeMux` のパターンマッチを経由しないと空になる。**
-ハンドラを直接呼ぶと id が取れず、原因の分かりにくい 400 になる。
-
-`user_test.go` の `do` ヘルパーが、テスト用に `mux` を組み立ててから
-`ServeHTTP` する形になっている。同じ形を使う。
+**gin の engine を組み立てて `ServeHTTP` する。** ハンドラは `gin.HandlerFunc`
+（`func(c *gin.Context)`）であって `http.Handler` ではないので、直接呼ぶ形は取れない。
+`c.Param("id")` も engine のルーティングを経由しないと空になり、
+原因の分かりにくい 400 になる。
 
 ```go
-mux := http.NewServeMux()
-mux.HandleFunc("GET /users/{id}", h.Get)
-// ...
+gin.SetMode(gin.TestMode)
+engine := gin.New()
+engine.GET("/users/:id", h.Get)
+
+r := httptest.NewRequest(http.MethodGet, "/users/1", nil)
 rec := httptest.NewRecorder()
-mux.ServeHTTP(rec, r)
+engine.ServeHTTP(rec, r)
 ```
+
+- `gin.SetMode(gin.TestMode)` を先に呼ぶ。デバッグログがテスト出力に混ざらない
+- `gin.Default()` ではなく `gin.New()`。テストに middleware は要らない
+- 依存が無いハンドラも同じ形（`health_test.go` が例）
+- パスパラメータを使うハンドラは `user_test.go` の `do` ヘルパーが雛形。
+  CRUD 分のルートをまとめて登録してから 1 件実行する
 
 ## DB を使うハンドラ
 
