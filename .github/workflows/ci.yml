@@ -1,0 +1,154 @@
+# PR に自動チェックを入れるための CI。
+# ルートの AGENTS.md「変更後の確認」に書いてあるコマンドと同じものを走らせる。
+#
+# モノレポなので backend / frontend の 2 ジョブに分け、変更のあった側だけを走らせる。
+# AGENTS.md にも「片方だけ触った場合はそちらだけでよい」とあるので、その方針に合わせている。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 読み取りだけで足りる。既定より権限を絞っておく。
+permissions:
+  contents: read
+
+# 同じブランチに連続で push したときは古い実行を止める。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # どちらのディレクトリが変わったかを判定して、後続ジョブの実行可否を出力する。
+  # GitHub Actions のパスフィルタ（on.push.paths）はワークフロー単位でしか効かず、
+  # ジョブごとの振り分けができないため、ここで差分を見て自前で判定している。
+  changes:
+    name: 変更範囲の判定
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 差分の比較対象（base）まで遡れる必要があるので全履歴を取る。
+          fetch-depth: 0
+
+      - name: 変更されたパスを見る
+        id: filter
+        env:
+          # pull_request なら base ブランチの先頭、push なら push 前の先頭と比べる。
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+
+          # 初回 push や force push では比較対象が取れないことがある。
+          # そのときは判定を諦めて、安全側に倒して両方走らせる。
+          if [ -z "${BASE_SHA}" ] || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "比較対象のコミットが取得できないため、両方のジョブを実行する"
+            echo "backend=true"  >> "${GITHUB_OUTPUT}"
+            echo "frontend=true" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          changed="$(git diff --name-only "${BASE_SHA}" HEAD)"
+          echo "変更されたファイル:"
+          echo "${changed}"
+
+          # CI 自体の定義が変わったときは、両方を走らせて設定の壊れに気付けるようにする。
+          if echo "${changed}" | grep -qE '^\.github/'; then
+            echo "backend=true"  >> "${GITHUB_OUTPUT}"
+            echo "frontend=true" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if echo "${changed}" | grep -q '^backend/'; then
+            echo "backend=true"  >> "${GITHUB_OUTPUT}"
+          else
+            echo "backend=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+          if echo "${changed}" | grep -q '^frontend/'; then
+            echo "frontend=true"  >> "${GITHUB_OUTPUT}"
+          else
+            echo "frontend=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+  # backend（Go）。make fmt / make vet / make test に対応する内容。
+  backend:
+    name: backend (Go)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # 各コマンドを backend/ の中で動かす。go.mod がここにあるため。
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          # バージョンを YAML に直書きすると go.mod と二重管理になるので、
+          # go.mod（go 1.23.1）をそのまま参照する。
+          # ここのパスは working-directory ではなくリポジトリルートからの相対。
+          go-version-file: backend/go.mod
+          # モジュールとビルドのキャッシュ。go.sum が変わったときだけ作り直される。
+          cache-dependency-path: backend/go.sum
+
+      - name: フォーマット確認（gofmt）
+        # make fmt は `go fmt` なので、CI で使うとファイルを書き換えたうえで成功してしまい
+        # チェックにならない。そのため gofmt -l で「未フォーマットのファイル一覧」を取り、
+        # 1 件でもあれば失敗させる。どのファイルを直せばよいかが分かるよう出力もする。
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "${unformatted}" ]; then
+            echo "gofmt がかかっていないファイルがある。ローカルで make fmt を実行すること:"
+            echo "${unformatted}"
+            exit 1
+          fi
+          echo "gofmt: 問題なし"
+
+      - name: 静的解析（go vet）
+        run: go vet ./...
+
+      - name: テスト（go test）
+        # ハンドラのテストはインメモリ SQLite を使うので、MySQL が無くても通る。
+        run: go test ./...
+
+  # frontend（React + TypeScript + Vite）。npm run lint / npm run build に対応する内容。
+  frontend:
+    name: frontend (Node)
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # package.json のある frontend/ の中で動かす。
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # 開発時に揃えているバージョン（22）を .nvmrc から読む。ローカルの nvm use と同じ基準。
+          # frontend/.npmrc に engine-strict=true があるため、バージョンがずれていると
+          # npm ci が engines チェックで失敗する。これは想定どおりの挙動なので、
+          # --force などで迂回せず .nvmrc に合わせることで満たす。
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          # ルートに package.json が無いので、キャッシュのキーにするロックファイルを明示する。
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 依存のインストール
+        # lockfile どおりに入れる。package.json と package-lock.json がずれていれば失敗する。
+        run: npm ci
+
+      - name: lint（oxlint）
+        run: npm run lint
+
+      - name: ビルド（tsc -b と vite build）
+        # 型チェックも兼ねている（テストフレームワークは未導入）。
+        run: npm run build

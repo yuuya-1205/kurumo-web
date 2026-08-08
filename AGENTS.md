@@ -49,3 +49,7 @@ frontend（React + TypeScript + Vite）と backend（Go）を 1 リポジトリ�
 cd backend  && make fmt && make vet && make test
 cd frontend && npm run lint && npm run build
 ```
+
+同じ内容が main への push と main 宛の PR で CI（[.github/workflows/ci.yml](.github/workflows/ci.yml)）でも走る。
+変更のあった側のジョブだけが動く。CI ではファイルを書き換えないよう `make fmt` の代わりに
+`gofmt -l` で未フォーマットのファイルを検出して落としているので、指摘されたらローカルで `make fmt` をかけること。
