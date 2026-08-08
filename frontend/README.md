@@ -1,32 +1,74 @@
-# React + TypeScript + Vite
+# kurumo frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Vite で構成したフロントエンド。
 
-Currently, two official plugins are available:
+## 必要環境
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 22（`.nvmrc` で固定。`nvm use` で切り替わる）
 
-## React Compiler
+Vite 8 は Node `>=20.19` を要求するため、Node 18 では起動しない。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 起動
 
-## Expanding the Oxlint configuration
+```sh
+cd frontend
+nvm use
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+`http://localhost:5173` で起動する。API 疎通確認の画面が出るので、
+ボタンを押すと backend の各エンドポイントを叩いて結果を表示する。
 
-```json
+backend も併せて起動しておく。
+
+```sh
+cd backend && make run
+```
+
+## API の接続先
+
+dev サーバーの proxy が `/api/*` を Go サーバー（既定で `http://localhost:8080`）へ
+転送する。ブラウザから見ると同一オリジンになるので、backend 側に CORS の設定は要らない。
+
+| 変数 | 既定値 | 内容 |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `/api` | API のベース URL。backend を直接叩く場合に設定する（backend 側の CORS 対応が必要） |
+| `VITE_PROXY_TARGET` | `http://localhost:8080` | dev サーバーの proxy 転送先 |
+
+設定する場合は `.env.example` をコピーして `.env` を作る。
+
+## 疎通確認の対象を増やす
+
+backend にエンドポイントを追加したら、[src/api/health.ts](src/api/health.ts) の
+`ENDPOINTS` に 1 件足すとボタンと結果表示が増える。
+
+```ts
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+  id: 'users',
+  method: 'GET',
+  path: '/users',
+  label: 'ユーザー一覧',
+  description: '登録済みユーザーを返す',
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## コマンド
+
+| コマンド | 内容 |
+| --- | --- |
+| `npm run dev` | dev サーバー起動 |
+| `npm run build` | 型チェック（`tsc -b`）とビルド |
+| `npm run preview` | ビルド結果の確認 |
+| `npm run lint` | oxlint |
+
+## 構成
+
+```
+frontend/
+├── src/
+│   ├── api/health.ts   エンドポイント定義と疎通確認の fetch
+│   ├── App.tsx         疎通確認の画面
+│   └── App.css
+└── vite.config.ts      dev サーバーの proxy 設定
+```
