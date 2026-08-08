@@ -74,8 +74,14 @@ backend にエンドポイントを追加したら、[src/api/health.ts](src/api
 ```
 frontend/
 ├── src/
-│   ├── api/health.ts   エンドポイント定義と疎通確認の fetch
-│   ├── App.tsx         疎通確認の画面
-│   └── App.css
+│   ├── api/            backend との通信
+│   ├── components/     画面をまたいで使う部品
+│   ├── pages/          画面単位のコンポーネント
+│   ├── styles/         デザイントークン（Tailwind の @theme）
+│   ├── assets/brand/   Figma から書き出したロゴ・アイコン
+│   └── App.tsx         ルーティング定義
 └── vite.config.ts      dev サーバーの proxy 設定
 ```
+
+スタイルは Tailwind CSS v4。設定ファイルは無く、テーマは
+[src/styles/tokens.css](src/styles/tokens.css) の `@theme` にある（値の出どころは Figma）。

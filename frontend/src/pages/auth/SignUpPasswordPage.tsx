@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { AuthLayout } from '../../components/AuthLayout'
+import { AuthLayout, authFormClass } from '../../components/AuthLayout'
 import { Button } from '../../components/Button'
 import { PasswordField, TextField } from '../../components/TextField'
 
@@ -15,7 +15,7 @@ export function SignUpPasswordPage() {
 
   return (
     <AuthLayout>
-      <form className="auth-form" onSubmit={handleSubmit}>
+      <form className={authFormClass} onSubmit={handleSubmit}>
         <TextField
           label="メールアドレス"
           type="email"
@@ -30,7 +30,7 @@ export function SignUpPasswordPage() {
           autoComplete="new-password"
         />
 
-        <Button type="submit" width={284} className="auth-submit">
+        <Button type="submit" width={284} className="mt-[13px]">
           確認メールを送信する
         </Button>
       </form>
