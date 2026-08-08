@@ -131,6 +131,7 @@ cd frontend && npm run lint && npm run build && npm run dev
 ## 最後の確認
 
 - [ ] 新しい色・寸法を tokens.css の `@theme` に足した（クラスに hex を直書きしていない）
+- [ ] `@theme` と `:root` の使い分けが合っている（ユーティリティにするか、`var()` で参照するか）
 - [ ] 変数化されていない値にはコメントで出どころを書いた
 - [ ] アセットは `src/assets/brand/` に置いた
 - [ ] named export、`className` を受け取れる形になっている

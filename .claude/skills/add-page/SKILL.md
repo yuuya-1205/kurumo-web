@@ -32,6 +32,25 @@ export しており、各画面はそれを使うだけにしてある。画面�
 
 **新しい画面を機能グループに足すときは、まず既存の定数で足りるかを見る。**
 
+```tsx
+import { AuthLayout, authFormClass } from '../../components/AuthLayout'
+
+<form className={authFormClass} onSubmit={handleSubmit}>
+```
+
+足りない場合は、**その画面のモジュールスコープに定数を作って名前を付ける。**
+JSX に長いクラス列を直接並べない。理由もコメントに残す。
+
+```tsx
+/*
+ * プロフィール入力はフォーム幅もラベルも他画面と異なる。
+ * 行間は Figma の 16px、姓と名の間は 29.777px。
+ */
+const profileFormClass = 'flex w-full flex-col items-stretch gap-4'
+```
+
+2 画面目で同じものが要るようになったら、`AuthLayout` 側へ移して export する。
+
 **色・フォント・角丸は `src/styles/tokens.css` の `@theme` のトークンをクラスで使う**
 （`bg-primary-300`, `font-jp`, `rounded-pill`）。**生の hex を書かない。**
 必要な値が無い場合は `@theme` に足してから使う（値の出どころは Figma）。
