@@ -11,6 +11,12 @@ description: kurumo-web に API エンドポイントを追加・変更すると
 
 新しいテーブルが要るかどうかで分岐する。既存テーブルへの操作を足すだけなら手順 1 を飛ばす。
 
+> **層構成について。** 手順 1〜4 は `model` / `store` / `handler` という**現状**の層を
+> 前提にしている。目標は `domain` / `usecase` / `adapter` / `infrastructure` の 4 層で、
+> そちらは [backend-clean-architecture スキル](../backend-clean-architecture/SKILL.md)
+> にある。**新しく作る部分は 4 層で書く**（手順 5 以降のテスト・frontend への反映・
+> ドキュメント更新はどちらでも同じ）。
+
 ## 1. モデルとマイグレーション（新しいテーブルが要る場合のみ）
 
 1. `backend/internal/model/` に構造体を定義する。`internal/model/user.go` に倣う。

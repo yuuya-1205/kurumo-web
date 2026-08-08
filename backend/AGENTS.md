@@ -3,7 +3,16 @@
 Go 製の HTTP API サーバー。起動方法・エンドポイント一覧・環境変数は [README.md](README.md) にある。
 ここには README に書いていない「実装するときの判断」を書く。
 
-## 層とその責務
+## 目標のアーキテクチャ
+
+**クリーンアーキテクチャ**（`domain` / `usecase` / `adapter` / `infrastructure` の
+4 層 + 依存性逆転）を目標にしている。層の切り方・依存の向き・移行の順序は
+[backend-clean-architecture スキル](../.claude/skills/backend-clean-architecture/SKILL.md)
+にある。**新しく書くコードはそちらに従う。**
+
+以下は**現状**の説明。既存コードを読むときの地図として使い、新規実装の手本にはしない。
+
+## 層とその責務（現状）
 
 ```
 model  → テーブルに対応する構造体（GORM タグ）
