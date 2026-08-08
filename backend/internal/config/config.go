@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"time"
@@ -13,6 +14,13 @@ type Config struct {
 	WriteTimeout    time.Duration
 	ShutdownTimeout time.Duration
 	DB              DBConfig
+	JWT             JWTConfig
+}
+
+// JWTConfig は認証トークンの設定を保持する。
+type JWTConfig struct {
+	Secret string        // HS256 の署名鍵。既定値は持たせない（Validate を参照）
+	Expiry time.Duration // トークンの有効期間
 }
 
 // DBConfig はデータベース接続の設定を保持する。
@@ -47,7 +55,24 @@ func Load() Config {
 			MaxIdleConns:    getEnvInt("DB_MAX_IDLE_CONNS", 5),
 			ConnMaxLifetime: getEnvDuration("DB_CONN_MAX_LIFETIME_SEC", 5*time.Minute),
 		},
+		JWT: JWTConfig{
+			// 署名鍵に既定値を持たせない。既定値のまま本番に出ると、
+			// 誰でも任意のユーザーになりすませるトークンを作れてしまう。
+			Secret: os.Getenv("JWT_SECRET"),
+			Expiry: getEnvHours("JWT_EXPIRY_HOURS", 24*time.Hour),
+		},
 	}
+}
+
+// Validate は起動前に設定の不足を検出する。
+//
+// Load ではなくここで見ているのは、DB へのマイグレーション（cmd/migrate）に
+// JWT_SECRET が不要なため。サーバー（cmd/server）だけがこれを呼ぶ。
+func (c Config) Validate() error {
+	if c.JWT.Secret == "" {
+		return errors.New("JWT_SECRET is required")
+	}
+	return nil
 }
 
 func getEnv(key, fallback string) string {
@@ -79,4 +104,17 @@ func getEnvDuration(key string, fallback time.Duration) time.Duration {
 		return fallback
 	}
 	return time.Duration(sec) * time.Second
+}
+
+// getEnvHours は「時間」単位の環境変数を読む。秒単位の getEnvDuration と使い分ける。
+func getEnvHours(key string, fallback time.Duration) time.Duration {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	hours, err := strconv.Atoi(v)
+	if err != nil || hours <= 0 {
+		return fallback
+	}
+	return time.Duration(hours) * time.Hour
 }

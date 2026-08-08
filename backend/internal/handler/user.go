@@ -145,25 +145,42 @@ func decodeUser(c *gin.Context) (userRequest, bool) {
 func validateUser(req userRequest) map[string]string {
 	fields := map[string]string{}
 
-	switch {
-	case req.Name == "":
-		fields["name"] = "name is required"
-	case len([]rune(req.Name)) > 100:
-		fields["name"] = "name must be 100 characters or less"
+	if reason := validateName(req.Name); reason != "" {
+		fields["name"] = reason
 	}
-
-	switch {
-	case req.Email == "":
-		fields["email"] = "email is required"
-	case len(req.Email) > 255:
-		fields["email"] = "email must be 255 characters or less"
-	default:
-		if _, err := mail.ParseAddress(req.Email); err != nil {
-			fields["email"] = "email is not a valid address"
-		}
+	if reason := validateEmail(req.Email); reason != "" {
+		fields["email"] = reason
 	}
 
 	return fields
+}
+
+// validateName は name の検証理由を返す。問題なければ空文字。
+// 上限は model.User の size:100 に合わせる。日本語を数えるので rune 数で見る。
+func validateName(name string) string {
+	switch {
+	case name == "":
+		return "name is required"
+	case len([]rune(name)) > 100:
+		return "name must be 100 characters or less"
+	}
+	return ""
+}
+
+// validateEmail は email の検証理由を返す。問題なければ空文字。
+// 上限は model.User の size:255 に合わせる。
+func validateEmail(email string) string {
+	switch {
+	case email == "":
+		return "email is required"
+	case len(email) > 255:
+		return "email must be 255 characters or less"
+	default:
+		if _, err := mail.ParseAddress(email); err != nil {
+			return "email is not a valid address"
+		}
+	}
+	return ""
 }
 
 // writeStoreError は store のエラーを HTTP ステータスに対応付ける。
