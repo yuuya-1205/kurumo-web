@@ -1,0 +1,61 @@
+.social-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* 直前のボタン下端から区切り線まで 56px（Figma: 606 → 662） */
+  margin-top: 56px;
+}
+
+.social-auth-divider {
+  width: 100%;
+  height: 0;
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--color-gray-900);
+}
+
+.social-auth-caption {
+  margin: 56px 0;
+  font-family: var(--font-latin);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
+  color: var(--color-gray-900);
+}
+
+.social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  box-sizing: border-box;
+  width: 351px;
+  max-width: 100%;
+  height: var(--auth-control-height);
+  border-radius: var(--radius-field);
+  font-family: var(--font-latin);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.social-button + .social-button {
+  margin-top: 16px;
+}
+
+.social-button-google {
+  border: 1px solid var(--color-gray-900);
+  background: var(--color-back);
+  color: var(--color-gray-900);
+}
+
+.social-button-apple {
+  border: none;
+  background: var(--color-gray-900);
+  color: var(--color-text-inverse);
+}
+
+.social-button:hover {
+  filter: brightness(0.97);
+}
