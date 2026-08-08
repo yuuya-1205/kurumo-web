@@ -1,0 +1,39 @@
+# kurumo-web
+
+frontend（React + TypeScript + Vite）と backend（Go）を 1 リポジトリに置いたモノレポ。
+ルートにビルド設定は無い。作業は `frontend/` か `backend/` に入ってから行う。
+
+詳細は各ディレクトリの `AGENTS.md` と `README.md` を見ること。ここには両方に関わることだけ書く。
+
+## 2 つの間のつながり
+
+- ブラウザ → Vite dev サーバー → Go サーバー、という経路。dev サーバーの proxy が
+  `/api/*` を `http://localhost:8080` へ転送する（`frontend/vite.config.ts`）。
+- ブラウザから見ると同一オリジンになるので、**backend に CORS の設定を入れる必要はない**。
+  CORS エラーが出た場合、まず proxy を経由しているか（`VITE_API_BASE_URL` が
+  backend の URL に直接向いていないか）を疑う。
+- **エンドポイントの一覧が 2 箇所にある。** backend にエンドポイントを追加したら
+  `frontend/src/api/health.ts` の `ENDPOINTS` にも足す。手順は
+  [add-endpoint スキル](.claude/skills/add-endpoint/SKILL.md) に従う。
+
+## 書き方の約束
+
+- コミットメッセージ、コード内のコメント、ドキュメントは**日本語**で書く。
+- コミットは `type: 日本語の要約` 形式（`feat:` / `fix:` / `chore:`）。
+- 変更は PR にまとめてマージする。main に直接コミットしない。
+
+## 触ってはいけないもの
+
+- `.env` はコミットしない。設定項目を増やしたときは `.env.example` の方を更新する。
+- `.claude/settings.local.json` はマシン固有。チームで共有したい設定は
+  `.claude/settings.json` に置く。
+- `frontend/dist/` はビルド生成物。手で編集しない。
+
+## 変更後の確認
+
+片方だけ触った場合はそちらだけでよい。
+
+```sh
+cd backend  && make fmt && make vet && make test
+cd frontend && npm run lint && npm run build
+```
