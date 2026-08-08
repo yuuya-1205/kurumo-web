@@ -9,15 +9,18 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
+	gormmysql "gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"github.com/yuuya-1205/kurumo-web/backend/internal/config"
 )
 
 // Open は接続プールを構築する。
 //
-// sql.Open は実際の接続を張らないため、この時点では DB が起動していなくても
-// エラーにはならない。疎通確認は Ping / PingContext で行う。
-func Open(cfg config.DBConfig) (*sql.DB, error) {
+// この時点では実際の接続を張らないため、DB が起動していなくてもエラーには
+// ならない。疎通確認は Ping で行う。
+func Open(cfg config.DBConfig) (*gorm.DB, error) {
 	c := mysql.NewConfig()
 	c.Net = "tcp"
 	c.Addr = net.JoinHostPort(cfg.Host, cfg.Port)
@@ -28,23 +31,67 @@ func Open(cfg config.DBConfig) (*sql.DB, error) {
 	c.Loc = time.UTC
 	c.InterpolateParams = true
 
-	conn, err := mysql.NewConnector(c)
+	gdb, err := gorm.Open(gormmysql.Open(c.FormatDSN()), &gorm.Config{
+		Logger: logger.Default.LogMode(logLevel(cfg.LogLevel)),
+		// gorm.ErrDuplicatedKey などに変換させる。ドライバ固有の
+		// エラー番号（1062 など）を上位層で判定せずに済む。
+		TranslateError: true,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to build mysql connector: %w", err)
+		return nil, fmt.Errorf("failed to open gorm: %w", err)
 	}
 
-	pool := sql.OpenDB(conn)
+	pool, err := gdb.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
+	}
 	pool.SetMaxOpenConns(cfg.MaxOpenConns)
 	pool.SetMaxIdleConns(cfg.MaxIdleConns)
 	pool.SetConnMaxLifetime(cfg.ConnMaxLifetime)
 
-	return pool, nil
+	return gdb, nil
 }
 
 // Ping は指定時間内に疎通確認を行う。
-func Ping(ctx context.Context, pool *sql.DB, timeout time.Duration) error {
+func Ping(ctx context.Context, gdb *gorm.DB, timeout time.Duration) error {
+	pool, err := gdb.DB()
+	if err != nil {
+		return err
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	return pool.PingContext(ctx)
+}
+
+// Stats は接続プールの統計を返す。
+func Stats(gdb *gorm.DB) (sql.DBStats, error) {
+	pool, err := gdb.DB()
+	if err != nil {
+		return sql.DBStats{}, err
+	}
+	return pool.Stats(), nil
+}
+
+// Close は接続プールを閉じる。
+func Close(gdb *gorm.DB) error {
+	pool, err := gdb.DB()
+	if err != nil {
+		return err
+	}
+	return pool.Close()
+}
+
+func logLevel(name string) logger.LogLevel {
+	switch name {
+	case "silent":
+		return logger.Silent
+	case "error":
+		return logger.Error
+	case "info":
+		return logger.Info
+	default:
+		return logger.Warn
+	}
 }

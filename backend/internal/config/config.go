@@ -22,6 +22,7 @@ type DBConfig struct {
 	User            string
 	Password        string
 	Name            string
+	LogLevel        string // silent / error / warn / info（info で発行 SQL を全て出す）
 	MaxOpenConns    int
 	MaxIdleConns    int
 	ConnMaxLifetime time.Duration
@@ -39,7 +40,8 @@ func Load() Config {
 			Port:     getEnv("DB_PORT", "3306"),
 			User:     getEnv("DB_USER", "root"),
 			Password: os.Getenv("DB_PASSWORD"), // 空パスワードも許容するため getEnv は使わない
-			Name:     getEnv("DB_NAME", "kurumo"),
+			Name:     getEnv("DB_NAME", "kurumo_api"),
+			LogLevel: getEnv("DB_LOG_LEVEL", "warn"),
 
 			MaxOpenConns:    getEnvInt("DB_MAX_OPEN_CONNS", 25),
 			MaxIdleConns:    getEnvInt("DB_MAX_IDLE_CONNS", 5),
