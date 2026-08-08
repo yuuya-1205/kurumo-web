@@ -7,7 +7,7 @@ import { SignUpPasswordPage } from './pages/auth/SignUpPasswordPage'
 import { SignUpProfilePage } from './pages/auth/SignUpProfilePage'
 import { SignUpSentPage } from './pages/auth/SignUpSentPage'
 
-function App() {
+export function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
@@ -22,5 +22,3 @@ function App() {
     </Routes>
   )
 }
-
-export default App
