@@ -30,6 +30,12 @@ func run() error {
 
 	cfg := config.Load()
 
+	// JWT_SECRET が無いまま起動させない。既定の署名鍵があると、
+	// 誰でも任意のユーザーになりすませるトークンを作れてしまうため。
+	if err := cfg.Validate(); err != nil {
+		return err
+	}
+
 	gdb, err := db.Open(cfg.DB)
 	if err != nil {
 		return err

@@ -48,6 +48,15 @@ func (s *User) Get(ctx context.Context, id uint64) (*model.User, error) {
 	return &user, nil
 }
 
+// GetByEmail はメールアドレスでユーザーを 1 件返す。存在しない場合は ErrNotFound。
+func (s *User) GetByEmail(ctx context.Context, email string) (*model.User, error) {
+	var user model.User
+	if err := s.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, translate(err)
+	}
+	return &user, nil
+}
+
 // Create はユーザーを登録する。メールアドレスが重複する場合は ErrEmailTaken。
 func (s *User) Create(ctx context.Context, user *model.User) error {
 	if err := s.db.WithContext(ctx).Create(user).Error; err != nil {
@@ -66,6 +75,21 @@ func (s *User) Update(ctx context.Context, id uint64, name, email string) (*mode
 
 	user.Name = name
 	user.Email = email
+
+	if err := s.db.WithContext(ctx).Save(user).Error; err != nil {
+		return nil, translate(err)
+	}
+	return user, nil
+}
+
+// UpdateName は ID のユーザーの name だけを更新する。存在しない場合は ErrNotFound。
+func (s *User) UpdateName(ctx context.Context, id uint64, name string) (*model.User, error) {
+	user, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Name = name
 
 	if err := s.db.WithContext(ctx).Save(user).Error; err != nil {
 		return nil, translate(err)
