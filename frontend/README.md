@@ -45,6 +45,27 @@ dev サーバーの proxy が `/api/*` を Go サーバー（既定で `http://l
 
 設定する場合は `.env.example` をコピーして `.env` を作る。
 
+## ログイン状態の持ち方
+
+セッションは JWT（Bearer トークン）。`POST /auth/login` と `POST /auth/signup` が返す
+トークンを **localStorage** に保存し、`Authorization: Bearer <token>` を付けて
+`/auth/me` を叩く。
+
+| 置き場所 | 内容 |
+| --- | --- |
+| [src/api/auth.ts](src/api/auth.ts) | `/auth/*` の呼び出し。失敗は例外ではなく戻り値（`ApiResult`）で返す |
+| [src/api/token.ts](src/api/token.ts) | トークンの保存・読み出し・削除。localStorage を触るのはここだけ |
+| [src/components/AuthProvider.tsx](src/components/AuthProvider.tsx) | ログイン状態を Context で共有（状態管理ライブラリは使わない） |
+| [src/components/RequireAuth.tsx](src/components/RequireAuth.tsx) | ログインが要る画面を包む。未ログインなら `/login` へ送る |
+
+起動時にトークンが残っていれば `GET /auth/me` で確認し、通ったときだけログイン中として
+扱う（401 ならトークンを捨てる）。確認が終わるまでは `loading` 状態で、`RequireAuth` は
+何も描かない。リロードしてもログイン状態は続く。
+
+localStorage は JavaScript から読めるため、XSS を許すとトークンを持ち出されうる。
+承知のうえでの選択で、詳細と将来 HttpOnly Cookie へ移す場合の話は
+[src/api/token.ts](src/api/token.ts) の冒頭にある。
+
 ## 疎通確認の対象を増やす
 
 backend にエンドポイントを追加したら、[src/api/health.ts](src/api/health.ts) の
