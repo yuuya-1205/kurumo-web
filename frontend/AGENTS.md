@@ -11,18 +11,27 @@
 `scripts/check-node.mjs` が事前に止める。**これは想定どおりの挙動なので、
 迂回するために `--force` を付けたり `.npmrc` や `engines` を緩めたりしない。**
 
+## 目標のアーキテクチャ
+
+**クリーンアーキテクチャ**（`domain` / `usecase` / `adapter`(= `api/`) / ui の 4 層 +
+依存性逆転）を目標にしている。層の切り方・依存の向き・移行の順序は
+[frontend-clean-architecture スキル](../.claude/skills/frontend-clean-architecture/SKILL.md)
+にある。**新しく書くコードはそちらに従う。**
+
+`src/domain/` と `src/usecase/` はまだ無い。以下は**現状**の説明。
+
 ## ディレクトリの使い分け
 
 ```
-src/api/         backend との通信。fetch はここだけに書く
-src/components/  画面をまたいで使う部品
-src/pages/       画面単位のコンポーネント
+src/api/         backend との通信。fetch はここだけに書く（adapter 層にあたる）
+src/components/  画面をまたいで使う部品（ui 層）
+src/pages/       画面単位のコンポーネント（ui 層）
 src/styles/      デザイントークン（Tailwind の @theme）
 ```
 
 - **コンポーネントの中で `fetch` を直接呼ばない。** `src/api/` に関数を置いて呼ぶ。
 - **API 関数は失敗で例外を投げず、戻り値で表現する**（`probe` の `ProbeResult` が前例）。
-  失敗も画面に出したいため。
+  失敗も画面に出したいため。目標の形ではこれを `domain` の `Result` 型に一般化する。
 - 1 画面でしか使わない部品は `src/pages/` 側に置いてよい。2 つ目の利用が出たら
   `src/components/` へ移す。
 
