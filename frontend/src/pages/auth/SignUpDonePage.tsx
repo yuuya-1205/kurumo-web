@@ -11,7 +11,8 @@ export function SignUpDonePage() {
       <p className={authMessageClass}>
         アカウントが登録されました。登録されたメールアドレスに登録情報をお送りしました。
       </p>
-      <Button width={284} className="mt-6" onClick={() => navigate('/login')}>
+      {/* ここまで来た時点でログイン済みなので、ログイン画面ではなくホーム画面へ送る */}
+      <Button width={284} className="mt-6" onClick={() => navigate('/home', { replace: true })}>
         トップに戻る
       </Button>
     </AuthLayout>

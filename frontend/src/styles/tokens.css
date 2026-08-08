@@ -30,6 +30,7 @@
   --color-icon-muted: #837c7c; /* パスワード表示切り替えアイコン */
   --color-text-base: #000000; /* 入力文字・リード文 */
   --color-text-inverse: #ffffff; /* Apple ボタンのラベル */
+  --color-error: #d93025; /* 入力エラーの表示。Figma にエラー状態のデザインが無いため暫定 */
 
   --font-jp: 'Noto Sans JP', system-ui, sans-serif;
   --font-latin: Inter, system-ui, sans-serif;
