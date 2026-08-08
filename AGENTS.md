@@ -27,6 +27,7 @@ frontend（React + TypeScript + Vite）と backend（Go）を 1 リポジトリ�
 | [figma-to-component](.claude/skills/figma-to-component/SKILL.md) | Figma のデザインをコンポーネントに起こす |
 | [component-design](.claude/skills/component-design/SKILL.md) | 部品の分け方・状態の置き場所・props を判断する |
 | [write-tests](.claude/skills/write-tests/SKILL.md) | テストを書く |
+| [debug-api-connection](.claude/skills/debug-api-connection/SKILL.md) | frontend から API が呼べないときの切り分け |
 | [backend-clean-architecture](.claude/skills/backend-clean-architecture/SKILL.md) | backend の層構成と依存の向き（**目標の形**） |
 | [frontend-clean-architecture](.claude/skills/frontend-clean-architecture/SKILL.md) | frontend の層構成と依存の向き（**目標の形**） |
 
