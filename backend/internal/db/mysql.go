@@ -36,6 +36,16 @@ func Open(cfg config.DBConfig) (*gorm.DB, error) {
 		// gorm.ErrDuplicatedKey などに変換させる。ドライバ固有の
 		// エラー番号（1062 など）を上位層で判定せずに済む。
 		TranslateError: true,
+		// CreatedAt / UpdatedAt の生成方法を揃える。既定の time.Now() は
+		// ローカル時刻かつナノ秒精度で、そのままだと作成直後のレスポンスが
+		// +09:00・マイクロ秒、DB から読み戻すと Z・ミリ秒となり、同じ時刻が
+		// 別の値として見えてしまう。
+		//
+		// UTC に統一し、カラムの精度（datetime(3)）に合わせて切り捨てる。
+		// これで作成レスポンスと保存値が必ず一致する。
+		NowFunc: func() time.Time {
+			return time.Now().UTC().Truncate(time.Millisecond)
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to open gorm: %w", err)
