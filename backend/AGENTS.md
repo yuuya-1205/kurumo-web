@@ -38,13 +38,14 @@ DB アクセスは GORM。テストは `glebarez/sqlite`（cgo 不要の純 Go �
 
 ## レスポンスの書き方
 
-ハンドラの中で `json.NewEncoder` を直接呼ばない。次の 3 つを使う。
+ハンドラの中で `json.NewEncoder` を直接呼ばない。正常系は Gin の `c.JSON` を使い、
+エラーは形を揃えるため `internal/handler/response.go` のヘルパーを通す。
 
-| 関数 | 用途 |
+| 呼び出し | 用途 |
 | --- | --- |
-| `JSON(w, status, body)` | 正常系 |
-| `Error(w, status, msg)` | 単一メッセージのエラー |
-| `ValidationError(w, fields)` | 検証エラー。400 と `fields` を返す |
+| `c.JSON(status, body)` | 正常系。ボディを返さないときは `c.Status(http.StatusNoContent)` |
+| `Error(c, status, msg)` | 単一メッセージのエラー |
+| `ValidationError(c, fields)` | 検証エラー。400 と `fields` を返す |
 
 エラーの形は `{"error": "...", "fields": {...}}` に統一されていて、
 frontend の `ErrorBody` 型と対応している。**形を変えるときは frontend も直すこと。**
