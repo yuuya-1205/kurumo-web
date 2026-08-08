@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router'
 import { RequireAuth } from './components/RequireAuth'
 import { HealthCheckPage } from './pages/HealthCheckPage'
 import { HomePage } from './pages/HomePage'
+import { ShopDetailPage } from './pages/ShopDetailPage'
 import { ShopListPage } from './pages/ShopListPage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { SignUpDonePage } from './pages/auth/SignUpDonePage'
@@ -37,8 +38,9 @@ export function App() {
           </RequireAuth>
         }
       />
-      {/* 店舗一覧。データはまだダミーなので認証は掛けていない */}
+      {/* 店舗一覧と掲載ページ。データはまだダミーなので認証は掛けていない */}
       <Route path="/shops" element={<ShopListPage />} />
+      <Route path="/shops/:id" element={<ShopDetailPage />} />
       {/* backend の疎通確認用。画面の実装とは独立した開発者向けページ */}
       <Route path="/debug/health" element={<HealthCheckPage />} />
     </Routes>

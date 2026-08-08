@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import type { Shop } from '../api/shops'
 import heartIcon from '../assets/brand/heart.svg'
 import starsIcon from '../assets/brand/stars.svg'
@@ -20,6 +21,17 @@ type ShopCardProps = {
 export function ShopCard({ shop, onFavoriteClick }: ShopCardProps) {
   return (
     <article className="relative h-[400px] w-[351px] overflow-hidden rounded-field bg-back shadow-list-menu">
+      {/*
+        Figma ではカード全体がリンク。ただし中にお気に入りボタンがあり、
+        a の中に button を置けないので、カードを覆う透明なリンクを 1 枚敷いている。
+        ボタンはこれより上（z-2）に置いて、押しても遷移しないようにする。
+      */}
+      <Link
+        className="absolute inset-0 z-[1]"
+        to={`/shops/${shop.id}`}
+        aria-label={`${shop.name} の詳細を見る`}
+      />
+
       {/* 画像 351x207。読み込み前は Figma と同じ灰色を敷く */}
       <div className="absolute left-0 top-0 h-[207px] w-full bg-gray-200">
         <img className="size-full object-cover" src={shop.imageUrl} alt="" />
@@ -32,7 +44,7 @@ export function ShopCard({ shop, onFavoriteClick }: ShopCardProps) {
       */}
       <button
         type="button"
-        className="absolute left-[228px] top-[183px] size-10 cursor-pointer"
+        className="absolute left-[228px] top-[183px] z-[2] size-10 cursor-pointer"
         onClick={() => onFavoriteClick?.(shop)}
         aria-pressed={shop.favorite}
         aria-label={shop.favorite ? 'お気に入りから外す' : 'お気に入りに追加'}
