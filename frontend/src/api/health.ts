@@ -45,6 +45,13 @@ export const ENDPOINTS: Endpoint[] = [
     label: 'DB 疎通',
     description: 'DB への疎通確認。接続できない場合は 503',
   },
+  {
+    id: 'users',
+    method: 'GET',
+    path: '/users',
+    label: 'ユーザー一覧',
+    description: '登録済みユーザーを返す',
+  },
 ]
 
 /**
