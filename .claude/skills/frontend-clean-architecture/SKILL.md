@@ -178,9 +178,10 @@ createRoot(...).render(
 
 | 現状 | 移行先 |
 | --- | --- |
-| `api/health.ts` の型定義 | `domain/` へ（キャメルケースに直す） |
-| `api/health.ts` の `probe` | `api/` に残す（adapter 実装として interface を満たさせる） |
-| `api/health.ts` の `ProbeResult` | `domain/result.ts` の `Result` に一般化 |
+| `api/auth.ts` `api/health.ts` の型定義 | `domain/` へ（キャメルケースに直す） |
+| `api/auth.ts` の `ApiResult`、`api/health.ts` の `ProbeResult` | `domain/result.ts` の `Result` に一本化 |
+| `api/auth.ts` `api/health.ts` の呼び出し関数 | `api/` に残す（adapter 実装として interface を満たさせる） |
+| `api/token.ts` | `api/` に残す。トークンの置き場所は adapter の関心 |
 | 画面の中の遷移・検証 | `usecase/` へ |
 | `components/` `pages/` | 移動しない。ui 層として扱う |
 
@@ -193,5 +194,15 @@ createRoot(...).render(
 5. `main.tsx` に composition root を作り、Context で配る
 6. 各段階で `npm run lint && npm run build` を通す
 
-**認証画面はまだ API 未接続**（`handleSubmit` が遷移だけ行う）。
-最初に API をつなぐときが、この形を入れる自然なタイミングになる。
+### 最初に手を付けるとよいところ
+
+認証は `api/auth.ts` 経由で backend につながっている。目標の形との差が既に出ているので、
+ここが移行の入口になる。
+
+- **`api/auth.ts` の `User` 型が `created_at` / `updated_at` のままスネークケース。**
+  backend の JSON をそのまま型にしており、これが ui まで漏れている。
+  domain 型（キャメルケース）と、api 層での変換を入れる
+- **`ApiResult` が `status`（HTTP ステータス）を持ったまま外に出ている。**
+  `DomainError` に変換して、ステータスを api 層に閉じる
+- **`BASE_URL` が `auth.ts` と `health.ts` に重複している**（コードのコメントにも
+  その旨がある）。adapter 層を整理するときに 1 箇所へ寄せる
