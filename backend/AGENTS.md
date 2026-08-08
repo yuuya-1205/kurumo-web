@@ -21,9 +21,18 @@ server → ルーティングと middleware の組み立て
 
 ## 依存を増やさない
 
-ルーティングは `http.ServeMux` のメソッド付きパターン（`"GET /users/{id}"`）で足りている。
-**web フレームワーク（gin, echo, chi など）やロガーライブラリを導入しない。**
+ルーティングは **Gin**（`github.com/gin-gonic/gin`）。ハンドラは `gin.HandlerFunc`
+（`func(c *gin.Context)`）で書き、パスパラメータは `:id` 形式・`c.Param("id")` で取る。
+これ以外の web フレームワークやロガーライブラリを重ねて導入しない。
 ログは `log/slog`。他に依存が要ると判断した場合は追加前に相談すること。
+
+Gin を使う上での約束:
+
+- `gin.Default()` ではなく `gin.New()` を使う。`gin.Logger()` / `gin.Recovery()` は
+  独自形式で stdout に書いて slog の JSON ログに揃わないため、
+  `internal/server/middleware.go` の自作 middleware を使う
+- ボディの読み取りに `ShouldBindJSON` を使わない（理由は「入力の検証」を参照）。
+  `decodeUser` のように自前で読む
 
 DB アクセスは GORM。テストは `glebarez/sqlite`（cgo 不要の純 Go 実装）。
 
@@ -49,6 +58,9 @@ DB に接続できなくてもサーバーは起動する。起動時に落と�
 
 ## 入力の検証
 
+- Gin の `ShouldBindJSON` は使わない。未知のフィールドを黙って無視するのと、
+  TrimSpace 後の検証・「全フィールド分のエラーを返す」形が binding タグでは
+  表現できないため。
 - ボディの読み取りは `DisallowUnknownFields()` を有効にする。綴り間違いを黙って無視しないため。
 - 文字列は `TrimSpace` してから検証する。
 - 検証は「フィールド名 → 理由」の map を返す形（`validateUser` が雛形）。

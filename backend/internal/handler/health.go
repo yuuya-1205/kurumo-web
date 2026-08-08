@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type healthResponse struct {
@@ -11,9 +13,9 @@ type healthResponse struct {
 }
 
 // Health はヘルスチェック用のハンドラを返す。
-func Health() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		JSON(w, http.StatusOK, healthResponse{
+func Health() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, healthResponse{
 			Status: "ok",
 			Time:   time.Now().UTC(),
 		})

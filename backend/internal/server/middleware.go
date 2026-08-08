@@ -4,54 +4,41 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-// statusRecorder はレスポンスのステータスコードを記録する。
-type statusRecorder struct {
-	http.ResponseWriter
-	status int
-}
-
-func (r *statusRecorder) WriteHeader(code int) {
-	r.status = code
-	r.ResponseWriter.WriteHeader(code)
-}
-
 // logging はリクエストのメソッド・パス・ステータス・所要時間を記録する。
-func logging(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// gin.Logger() は使わない。独自フォーマットで stdout に書くため、
+// slog の JSON ログに揃わなくなる。
+func logging() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		start := time.Now()
-		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 
-		next.ServeHTTP(rec, r)
+		c.Next()
 
 		slog.Info("request",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"status", rec.status,
+			"method", c.Request.Method,
+			"path", c.Request.URL.Path,
+			"status", c.Writer.Status(),
 			"duration", time.Since(start).String(),
 		)
-	})
+	}
 }
 
 // recovery はハンドラ内の panic を捕捉して 500 を返す。
-func recovery(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// gin.Recovery() は使わない。スタックトレースを独自形式で stdout に
+// 吐くのと、レスポンスが空ボディになり ErrorBody の形に揃わないため。
+func recovery() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		defer func() {
 			if rec := recover(); rec != nil {
-				slog.Error("panic recovered", "panic", rec, "path", r.URL.Path)
-				http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
+				slog.Error("panic recovered", "panic", rec, "path", c.Request.URL.Path)
+				c.AbortWithStatusJSON(http.StatusInternalServerError,
+					gin.H{"error": "internal server error"})
 			}
 		}()
 
-		next.ServeHTTP(w, r)
-	})
-}
-
-// chain は middleware を順に適用する。
-func chain(h http.Handler, mws ...func(http.Handler) http.Handler) http.Handler {
-	for i := len(mws) - 1; i >= 0; i-- {
-		h = mws[i](h)
+		c.Next()
 	}
-	return h
 }

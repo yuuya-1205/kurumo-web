@@ -1,38 +1,27 @@
 package handler
 
 import (
-	"encoding/json"
-	"log/slog"
 	"net/http"
-)
 
-// JSON は値を JSON としてレスポンスに書き出す。
-func JSON(w http.ResponseWriter, status int, body any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(status)
-	if body == nil {
-		return
-	}
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		slog.Error("failed to encode response", "error", err)
-	}
-}
+	"github.com/gin-gonic/gin"
+)
 
 // ErrorBody はエラーレスポンスの共通フォーマット。
 // Fields は検証エラーの場合のみ、フィールド名ごとの理由を持つ。
+// frontend の ErrorBody 型と対応しているので、形を変えるときは frontend も直すこと。
 type ErrorBody struct {
 	Error  string            `json:"error"`
 	Fields map[string]string `json:"fields,omitempty"`
 }
 
 // Error はエラーメッセージを JSON で返す。
-func Error(w http.ResponseWriter, status int, msg string) {
-	JSON(w, status, ErrorBody{Error: msg})
+func Error(c *gin.Context, status int, msg string) {
+	c.JSON(status, ErrorBody{Error: msg})
 }
 
 // ValidationError は検証エラーを 400 で返す。
-func ValidationError(w http.ResponseWriter, fields map[string]string) {
-	JSON(w, http.StatusBadRequest, ErrorBody{
+func ValidationError(c *gin.Context, fields map[string]string) {
+	c.JSON(http.StatusBadRequest, ErrorBody{
 		Error:  "validation failed",
 		Fields: fields,
 	})

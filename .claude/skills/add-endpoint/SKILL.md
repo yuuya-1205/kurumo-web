@@ -47,13 +47,13 @@ description: kurumo-web に API エンドポイントを追加・変更すると
 
 ## 4. ルート登録
 
-`backend/internal/server/server.go` の `New` に追加する。
+`backend/internal/server/server.go` の `Route` に追加する。
 
 ```go
-mux.HandleFunc("GET /users/{id}", users.Get)
+engine.GET("/users/:id", users.Get)
 ```
 
-メソッド付きパターンで書く。パスパラメータは `r.PathValue("id")` で取り、
+パスパラメータは `:id` 形式で書き、`c.Param("id")` で取って
 `parseID` のように検証してから使う。
 
 ## 5. テスト

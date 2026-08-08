@@ -9,11 +9,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/yuuya-1205/kurumo-web/backend/internal/model"
 	"github.com/yuuya-1205/kurumo-web/backend/internal/store"
 )
 
 // userRequest は作成・更新の共通リクエスト。
+//
+// Gin の ShouldBindJSON は使わない。未知のフィールドを黙って無視するのと、
+// TrimSpace 後の検証や「全フィールド分のエラーを返す」形が binding タグでは
+// 表現できないため。decodeUser で自前に読む。
 type userRequest struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
@@ -30,84 +36,84 @@ func NewUser(s *store.User) *User {
 }
 
 // List は GET /users。
-func (h *User) List(w http.ResponseWriter, r *http.Request) {
-	users, err := h.store.List(r.Context())
+func (h *User) List(c *gin.Context) {
+	users, err := h.store.List(c.Request.Context())
 	if err != nil {
-		internalError(w, "failed to list users", err)
+		internalError(c, "failed to list users", err)
 		return
 	}
-	JSON(w, http.StatusOK, users)
+	c.JSON(http.StatusOK, users)
 }
 
-// Get は GET /users/{id}。
-func (h *User) Get(w http.ResponseWriter, r *http.Request) {
-	id, ok := parseID(w, r)
+// Get は GET /users/:id。
+func (h *User) Get(c *gin.Context) {
+	id, ok := parseID(c)
 	if !ok {
 		return
 	}
 
-	user, err := h.store.Get(r.Context(), id)
+	user, err := h.store.Get(c.Request.Context(), id)
 	if err != nil {
-		writeStoreError(w, "failed to get user", err)
+		writeStoreError(c, "failed to get user", err)
 		return
 	}
-	JSON(w, http.StatusOK, user)
+	c.JSON(http.StatusOK, user)
 }
 
 // Create は POST /users。
-func (h *User) Create(w http.ResponseWriter, r *http.Request) {
-	req, ok := decodeUser(w, r)
+func (h *User) Create(c *gin.Context) {
+	req, ok := decodeUser(c)
 	if !ok {
 		return
 	}
 
 	user := &model.User{Name: req.Name, Email: req.Email}
-	if err := h.store.Create(r.Context(), user); err != nil {
-		writeStoreError(w, "failed to create user", err)
+	if err := h.store.Create(c.Request.Context(), user); err != nil {
+		writeStoreError(c, "failed to create user", err)
 		return
 	}
-	JSON(w, http.StatusCreated, user)
+	c.JSON(http.StatusCreated, user)
 }
 
-// Update は PUT /users/{id}。name と email の両方を置き換える。
-func (h *User) Update(w http.ResponseWriter, r *http.Request) {
-	id, ok := parseID(w, r)
+// Update は PUT /users/:id。name と email の両方を置き換える。
+func (h *User) Update(c *gin.Context) {
+	id, ok := parseID(c)
 	if !ok {
 		return
 	}
 
-	req, ok := decodeUser(w, r)
+	req, ok := decodeUser(c)
 	if !ok {
 		return
 	}
 
-	user, err := h.store.Update(r.Context(), id, req.Name, req.Email)
+	user, err := h.store.Update(c.Request.Context(), id, req.Name, req.Email)
 	if err != nil {
-		writeStoreError(w, "failed to update user", err)
+		writeStoreError(c, "failed to update user", err)
 		return
 	}
-	JSON(w, http.StatusOK, user)
+	c.JSON(http.StatusOK, user)
 }
 
-// Delete は DELETE /users/{id}。
-func (h *User) Delete(w http.ResponseWriter, r *http.Request) {
-	id, ok := parseID(w, r)
+// Delete は DELETE /users/:id。
+func (h *User) Delete(c *gin.Context) {
+	id, ok := parseID(c)
 	if !ok {
 		return
 	}
 
-	if err := h.store.Delete(r.Context(), id); err != nil {
-		writeStoreError(w, "failed to delete user", err)
+	if err := h.store.Delete(c.Request.Context(), id); err != nil {
+		writeStoreError(c, "failed to delete user", err)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
 
 // parseID はパスパラメータの id を取り出す。不正な場合は 400 を書いて false を返す。
-func parseID(w http.ResponseWriter, r *http.Request) (uint64, bool) {
-	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
+func parseID(c *gin.Context) (uint64, bool) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil || id == 0 {
-		Error(w, http.StatusBadRequest, "id must be a positive integer")
+		Error(c, http.StatusBadRequest, "id must be a positive integer")
 		return 0, false
 	}
 	return id, true
@@ -115,13 +121,13 @@ func parseID(w http.ResponseWriter, r *http.Request) (uint64, bool) {
 
 // decodeUser はリクエストボディを読んで検証する。
 // 不正な場合は 400 を書いて false を返す。
-func decodeUser(w http.ResponseWriter, r *http.Request) (userRequest, bool) {
+func decodeUser(c *gin.Context) (userRequest, bool) {
 	var req userRequest
 
-	dec := json.NewDecoder(r.Body)
+	dec := json.NewDecoder(c.Request.Body)
 	dec.DisallowUnknownFields() // 綴り間違いを黙って無視しない
 	if err := dec.Decode(&req); err != nil {
-		Error(w, http.StatusBadRequest, "invalid JSON body")
+		Error(c, http.StatusBadRequest, "invalid JSON body")
 		return req, false
 	}
 
@@ -129,7 +135,7 @@ func decodeUser(w http.ResponseWriter, r *http.Request) (userRequest, bool) {
 	req.Email = strings.TrimSpace(req.Email)
 
 	if fields := validateUser(req); len(fields) > 0 {
-		ValidationError(w, fields)
+		ValidationError(c, fields)
 		return req, false
 	}
 	return req, true
@@ -161,19 +167,19 @@ func validateUser(req userRequest) map[string]string {
 }
 
 // writeStoreError は store のエラーを HTTP ステータスに対応付ける。
-func writeStoreError(w http.ResponseWriter, msg string, err error) {
+func writeStoreError(c *gin.Context, msg string, err error) {
 	switch {
 	case errors.Is(err, store.ErrNotFound):
-		Error(w, http.StatusNotFound, "user not found")
+		Error(c, http.StatusNotFound, "user not found")
 	case errors.Is(err, store.ErrEmailTaken):
-		Error(w, http.StatusConflict, "email already taken")
+		Error(c, http.StatusConflict, "email already taken")
 	default:
-		internalError(w, msg, err)
+		internalError(c, msg, err)
 	}
 }
 
 // internalError は詳細をログにのみ残し、クライアントには汎用メッセージを返す。
-func internalError(w http.ResponseWriter, msg string, err error) {
+func internalError(c *gin.Context, msg string, err error) {
 	slog.Error(msg, "error", err)
-	Error(w, http.StatusInternalServerError, "internal server error")
+	Error(c, http.StatusInternalServerError, "internal server error")
 }
