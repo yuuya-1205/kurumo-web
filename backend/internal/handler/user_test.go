@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -43,16 +44,17 @@ func do(h *User, method, target, body string) *httptest.ResponseRecorder {
 		r = httptest.NewRequest(method, target, strings.NewReader(body))
 	}
 
-	// ServeMux を通さないと PathValue が埋まらないため、ここで組み立てる。
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /users", h.List)
-	mux.HandleFunc("POST /users", h.Create)
-	mux.HandleFunc("GET /users/{id}", h.Get)
-	mux.HandleFunc("PUT /users/{id}", h.Update)
-	mux.HandleFunc("DELETE /users/{id}", h.Delete)
+	// gin のルーターを通さないと c.Param が埋まらないため、ここで組み立てる。
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.GET("/users", h.List)
+	engine.POST("/users", h.Create)
+	engine.GET("/users/:id", h.Get)
+	engine.PUT("/users/:id", h.Update)
+	engine.DELETE("/users/:id", h.Delete)
 
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, r)
+	engine.ServeHTTP(rec, r)
 	return rec
 }
 

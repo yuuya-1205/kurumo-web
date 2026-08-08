@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/yuuya-1205/kurumo-web/backend/internal/config"
 	"github.com/yuuya-1205/kurumo-web/backend/internal/db"
 )
@@ -28,10 +30,14 @@ func TestDBHealth_Unreachable(t *testing.T) {
 	}
 	defer db.Close(gdb)
 
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.GET("/healthz/db", DBHealth(gdb, "nonexistent"))
+
 	req := httptest.NewRequest(http.MethodGet, "/healthz/db", nil)
 	rec := httptest.NewRecorder()
 
-	DBHealth(gdb, "nonexistent").ServeHTTP(rec, req)
+	engine.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusServiceUnavailable)

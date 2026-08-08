@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	"github.com/yuuya-1205/kurumo-web/backend/internal/config"
@@ -12,22 +13,35 @@ import (
 
 // New はルーティングと middleware を組み立てた http.Server を返す。
 func New(cfg config.Config, gdb *gorm.DB) *http.Server {
-	users := handler.NewUser(store.NewUser(gdb))
+	// gin の debug ログ（ルート一覧の出力など）を止め、ログを slog に一本化する。
+	gin.SetMode(gin.ReleaseMode)
 
-	mux := http.NewServeMux()
-	mux.Handle("GET /healthz", handler.Health())
-	mux.Handle("GET /healthz/db", handler.DBHealth(gdb, cfg.DB.Name))
+	engine := gin.New()
+	// 存在するパスへの未対応メソッドには 404 ではなく 405 を返す
+	// （ServeMux 時代の挙動を維持する）。
+	engine.HandleMethodNotAllowed = true
+	engine.Use(recovery(), logging())
 
-	mux.HandleFunc("GET /users", users.List)
-	mux.HandleFunc("POST /users", users.Create)
-	mux.HandleFunc("GET /users/{id}", users.Get)
-	mux.HandleFunc("PUT /users/{id}", users.Update)
-	mux.HandleFunc("DELETE /users/{id}", users.Delete)
+	Route(engine, gdb, cfg.DB.Name)
 
 	return &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      chain(mux, recovery, logging),
+		Handler:      engine,
 		ReadTimeout:  cfg.ReadTimeout,
 		WriteTimeout: cfg.WriteTimeout,
 	}
+}
+
+// Route はエンドポイントを登録する。テストからも使えるよう分離している。
+func Route(engine *gin.Engine, gdb *gorm.DB, dbName string) {
+	users := handler.NewUser(store.NewUser(gdb))
+
+	engine.GET("/healthz", handler.Health())
+	engine.GET("/healthz/db", handler.DBHealth(gdb, dbName))
+
+	engine.GET("/users", users.List)
+	engine.POST("/users", users.Create)
+	engine.GET("/users/:id", users.Get)
+	engine.PUT("/users/:id", users.Update)
+	engine.DELETE("/users/:id", users.Delete)
 }

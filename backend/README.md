@@ -1,6 +1,6 @@
 # kurumo backend
 
-Go 製の HTTP API サーバー。標準ライブラリ（`net/http` + `log/slog`）のみで構成。
+Go 製の HTTP API サーバー。ルーティングは Gin、DB アクセスは GORM、ログは `log/slog`。
 
 ## 必要環境
 
