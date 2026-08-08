@@ -1,0 +1,138 @@
+.auth {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-back);
+  /* デザインがライト固定なので、OS のダークモードには追従させない */
+  color-scheme: light;
+}
+
+.auth-header {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--auth-header-height);
+  padding: 0 32px;
+  border-radius: 0 0 16px 16px;
+  background: var(--color-accent-300);
+}
+
+.auth-body {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--auth-form-width);
+  /* 幅は Figma のフォーム幅そのまま。狭い画面でのみ左右に余白を確保する */
+  max-width: calc(100% - 40px);
+  padding: 80px 0 120px;
+}
+
+.auth-lead {
+  font-family: var(--font-latin);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.4px;
+  color: var(--color-text-base);
+  text-align: center;
+}
+
+/* ロゴ下の余白。フォームでも完了画面でも同じ間隔にする */
+.auth-body > .logo + * {
+  margin-top: 32px;
+}
+
+/* リード文がある画面では、その下にも同じだけ空ける（Figma: 313 → 344） */
+.auth-lead + * {
+  margin-top: 30px;
+}
+
+/* ---- 認証画面のフォーム部品。AuthLayout の中でのみ使う ---- */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 19px;
+  width: 100%;
+}
+
+/* 姓・名のように 1 行に 2 つ並ぶ組み合わせ */
+.field-row {
+  display: flex;
+  gap: 29.777px;
+  width: 100%;
+}
+
+.field-row > .field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 位置は Figma 基準。.auth-form の gap 19px に足りない分をマージンで補う */
+.auth-link {
+  align-self: flex-end;
+  margin-top: 5px;
+  font-family: var(--font-latin);
+  font-size: 16px;
+  line-height: 19px;
+  color: var(--color-accent-300);
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.auth-submit {
+  margin-top: 13px;
+}
+
+/* ログイン画面の「新規登録をする」。ソーシャルボタンの下に 16px 空けて置く */
+.auth-alt-action {
+  margin-top: 16px;
+}
+
+/* 完了画面の本文 */
+.auth-message {
+  font-family: var(--font-latin);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.4px;
+  color: var(--color-gray-900);
+  text-align: left;
+  width: 100%;
+}
+
+.auth-message + .button {
+  margin-top: 24px;
+}
+
+/* プロフィール入力はフォーム幅もラベルも他画面と異なる */
+.auth-form-profile {
+  gap: 16px;
+  align-items: stretch;
+}
+
+.auth-form-profile .field-label {
+  font-size: 12px;
+  /* ラベル上端から入力上端までを Figma の 23px に合わせる（15 + gap 8） */
+  line-height: 15px;
+}
+
+.auth-terms {
+  font-family: var(--font-latin);
+  font-size: 16px;
+  line-height: 18px;
+  color: var(--color-gray-900);
+}
+
+.auth-terms a {
+  color: var(--color-accent-300);
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.auth-form-profile .auth-submit {
+  align-self: center;
+  margin-top: 20px;
+}

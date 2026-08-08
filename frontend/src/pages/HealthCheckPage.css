@@ -20,7 +20,8 @@
   line-height: 160%;
 }
 
-button {
+/* 他の画面のボタンに影響しないよう、この画面の中だけに効かせる */
+.app button {
   font: inherit;
   font-size: 15px;
   padding: 8px 18px;
@@ -32,11 +33,11 @@ button {
   white-space: nowrap;
 }
 
-button:hover:not(:disabled) {
+.app button:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
-button:disabled {
+.app button:disabled {
   opacity: 0.5;
   cursor: default;
 }

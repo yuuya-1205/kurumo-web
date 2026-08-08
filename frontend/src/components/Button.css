@@ -1,0 +1,24 @@
+.button {
+  height: var(--auth-control-height);
+  max-width: 100%;
+  padding: 0 24px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-300);
+  color: var(--color-primary-50);
+  font-family: var(--font-jp);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  text-align: center;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

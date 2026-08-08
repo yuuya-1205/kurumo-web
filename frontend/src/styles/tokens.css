@@ -1,0 +1,33 @@
+/*
+ * Figma で定義されている変数をそのまま CSS 変数に写したもの。
+ * 値を変えるときは Figma 側と揃えること。
+ */
+:root {
+  --color-primary-50: #ecf7fb;
+  --color-primary-300: #1fa2cb;
+  --color-accent-300: #fab54d;
+  --color-gray-200: #d8dadd;
+  --color-gray-400: #bcbec0;
+  --color-gray-900: #4e4e4e;
+  --color-back: #ffffff;
+
+  --shadow-list-menu: 0 1px 4px 0 #cfcfcf;
+
+  /* ロゴ内で使われる色。変数化されていないが実装上必要なので併記する */
+  --color-logo-mark: #3dc0e9;
+  --color-icon-muted: #837c7c;
+
+  /* Figma で変数化されていない素の黒と白。入力文字とボタンラベルで使う */
+  --color-text-base: #000000;
+  --color-text-inverse: #ffffff;
+
+  --font-jp: 'Noto Sans JP', system-ui, sans-serif;
+  --font-latin: Inter, system-ui, sans-serif;
+
+  /* 認証画面の寸法。Figma の 1280px フレーム基準 */
+  --auth-header-height: 90px;
+  --auth-form-width: 504px;
+  --auth-control-height: 56px;
+  --radius-field: 8px;
+  --radius-pill: 40px;
+}
