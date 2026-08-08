@@ -30,20 +30,20 @@ func run() error {
 
 	cfg := config.Load()
 
-	pool, err := db.Open(cfg.DB)
+	gdb, err := db.Open(cfg.DB)
 	if err != nil {
 		return err
 	}
-	defer pool.Close()
+	defer db.Close(gdb)
 
 	// DB が落ちていてもサーバー自体は起動させ、状態は /healthz/db で報告する。
-	if err := db.Ping(context.Background(), pool, dbStartupPingTimeout); err != nil {
+	if err := db.Ping(context.Background(), gdb, dbStartupPingTimeout); err != nil {
 		slog.Warn("database unreachable at startup", "error", err)
 	} else {
 		slog.Info("database connected", "database", cfg.DB.Name)
 	}
 
-	srv := server.New(cfg, pool)
+	srv := server.New(cfg, gdb)
 
 	// SIGINT / SIGTERM を受けたら graceful shutdown する。
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

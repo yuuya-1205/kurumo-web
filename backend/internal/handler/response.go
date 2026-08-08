@@ -19,11 +19,21 @@ func JSON(w http.ResponseWriter, status int, body any) {
 }
 
 // ErrorBody はエラーレスポンスの共通フォーマット。
+// Fields は検証エラーの場合のみ、フィールド名ごとの理由を持つ。
 type ErrorBody struct {
-	Error string `json:"error"`
+	Error  string            `json:"error"`
+	Fields map[string]string `json:"fields,omitempty"`
 }
 
 // Error はエラーメッセージを JSON で返す。
 func Error(w http.ResponseWriter, status int, msg string) {
 	JSON(w, status, ErrorBody{Error: msg})
+}
+
+// ValidationError は検証エラーを 400 で返す。
+func ValidationError(w http.ResponseWriter, fields map[string]string) {
+	JSON(w, http.StatusBadRequest, ErrorBody{
+		Error:  "validation failed",
+		Fields: fields,
+	})
 }
