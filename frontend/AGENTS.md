@@ -17,7 +17,7 @@
 src/api/         backend との通信。fetch はここだけに書く
 src/components/  画面をまたいで使う部品
 src/pages/       画面単位のコンポーネント
-src/styles/      デザイントークン（CSS 変数）
+src/styles/      デザイントークン（Tailwind の @theme）
 ```
 
 - **コンポーネントの中で `fetch` を直接呼ばない。** `src/api/` に関数を置いて呼ぶ。
@@ -28,20 +28,45 @@ src/styles/      デザイントークン（CSS 変数）
 
 ## コンポーネントの形
 
-- `Xxx.tsx` と `Xxx.css` を**同名で対にする**。`.tsx` の先頭で `import './Xxx.css'` する。
+- 1 コンポーネント 1 ファイル（`.tsx` のみ）。**スタイルは Tailwind のクラスで書く。**
 - **named export**（`export function Button`）。default export は使わない。
 - props の型は `ComponentProps<'button'>` などを拡張して、余った props は
   `{...props}` で流す（`Button.tsx` が前例）。
+- 呼び出し側から見た目を差し替えられるよう、`className` を受け取って末尾に連結する
+  （`Button.tsx` が前例）。後から書いたクラスが勝つ。
 
 ## スタイル
 
-**色・寸法・フォントは `src/styles/tokens.css` の CSS 変数を使う。新しく生の hex を書かない。**
-必要な値が無い場合は tokens.css に変数を足してから使う。
+**Tailwind CSS v4。** 設定ファイルは無く、テーマは `src/styles/tokens.css` の `@theme` にある。
 
-`tokens.css` は **Figma の変数を写したもの**で、Figma 側が正。値を変えるときは
+**色・フォント・角丸は `@theme` のトークンをクラスとして使う。生の hex を書かない。**
+必要な値が無い場合は `@theme` に足してから使う。
+
+```
+--color-primary-300  ->  bg-primary-300 / text-primary-300 / border-primary-300
+--font-jp            ->  font-jp
+--radius-pill        ->  rounded-pill
+```
+
+`@theme` は **Figma の変数を写したもの**で、Figma 側が正。値を変えるときは
 Figma と揃っているか確認すること。勝手に色を調整しない。
 
-CSS Modules や CSS-in-JS は使っていない。クラス名はケバブケース（`.endpoint-head`）。
+注意点が 3 つある。
+
+- **余白の基準は px。** `--spacing: 4px` を指定してあるので `p-4` = 16px。
+  `:root` の font-size が 18px なので、既定の rem 基準のままだと Figma とずれる
+- **`gray-*` は Figma のスケール**（200 / 400 / 900 の 3 段だけ）。
+  Tailwind 既定の `gray-500` などは使わない
+- **`border-none` と `border-t` を併用しない。** `border-style: none` が効いて線が消える。
+  Preflight が `border-width: 0` を入れているので `border-none` はそもそも不要
+
+複数箇所で使う長いクラス列は、モジュールスコープの定数に切り出して名前を付ける
+（`AuthLayout.tsx` の `authFormClass`、`Button.tsx` の `base` が前例）。
+
+Figma 由来の端数は任意値記法でそのまま入れる（`gap-[29.777px]`、`w-[27.96%]`）。
+丸めない。**どこから来た数字かをコメントで残す。**
+
+素の CSS を書くのは、ユーティリティで表現できないものだけ（`index.css` の `#root` など）。
 
 ## TypeScript / コードスタイル
 
@@ -63,6 +88,7 @@ lint は oxlint（`npm run lint`）。型チェックは `npm run build` の `ts
 
 - **テストフレームワークは未導入。** 必要になったら相談してから入れる（勝手に vitest を追加しない）。
 - 状態管理ライブラリは無い。`useState` と props で足りている。
+- UI コンポーネントライブラリは無い。部品は `src/components/` に自前で置いている。
 
 ## コマンド
 
