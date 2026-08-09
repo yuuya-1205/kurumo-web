@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import type { Shop } from '../api/shops'
+import heartFilledIcon from '../assets/brand/heart-filled.svg'
 import heartIcon from '../assets/brand/heart.svg'
 import starsIcon from '../assets/brand/stars.svg'
 import { selectIsFavorite, toggled } from '../store/favoritesSlice'
@@ -42,8 +43,8 @@ export function ShopCard({ shop }: ShopCardProps) {
 
       {/*
         Figma 上のアイコン寸法は 40 x 40。
-        お気に入り済みの見た目が Figma に無いため、今は状態で絵が変わらない。
-        押されたことは aria-pressed とラベルでのみ伝わる。デザインが来たら差し替える。
+        お気に入り済みの絵は Pencil のお気に入り画面にあったものを使う（塗りつぶし）。
+        枠の丸は CSS で描き、中のハートだけ差し替える。
       */}
       <button
         type="button"
@@ -52,7 +53,14 @@ export function ShopCard({ shop }: ShopCardProps) {
         aria-pressed={favorite}
         aria-label={favorite ? 'お気に入りから外す' : 'お気に入りに追加'}
       >
-        <img src={heartIcon} alt="" width={40} height={40} />
+        {favorite ? (
+          <span className="flex size-10 items-center justify-center rounded-full border-2 border-primary-300 bg-back">
+            {/* Pencil 上のハートは 25 x 22.938 */}
+            <img src={heartFilledIcon} alt="" width={21} height={19.3} />
+          </span>
+        ) : (
+          <img src={heartIcon} alt="" width={40} height={40} />
+        )}
       </button>
 
       {shop.supportsVisit && (
